@@ -22,13 +22,14 @@ class GameImpl
 private:
     Player* m_red;
     Player* m_black;
+    Player* m_currentPlayer;
     Scaffold m_scaffold;
     
     int m_win;
     
 };
 
-GameImpl::GameImpl(int nColumns, int nLevels, int N, Player* red, Player* black): m_red(red), m_black(black), m_scaffold(nColumns, nLevels)
+GameImpl::GameImpl(int nColumns, int nLevels, int N, Player* red, Player* black): m_red(red), m_black(black), m_currentPlayer(m_red), m_scaffold(nColumns, nLevels)
 {
     if(N < 1)
         exit(0);
@@ -68,31 +69,22 @@ bool GameImpl::takeTurn()
     //if game has ended, return false
     if(completed(winner))
         return false;
-    int turn = 1;
     int move;
-    int whoseTurn = RED;
-    while(!completed(winner)){
-        //keep track of turn with a turn int variable
-        if(turn%2 == 0){
-            whoseTurn = BLACK;
-            move = m_black->chooseMove(m_scaffold, m_win, BLACK);
-        }
-        else {
-            whoseTurn = RED;
-            move = m_red->chooseMove(m_scaffold, m_win, RED);
-        }
-        m_scaffold.makeMove(move, whoseTurn);
-        //display the scaffold after move has been made
-        cout << endl;
-        m_scaffold.display();
-        turn++;
-        //lets user press enter to see the progress of the game
-        cout << "Press ENTER to continue..." << endl;
-        cin.ignore(10000, '\n');
-        
-        
-       
+    //if current player is red
+    if(m_currentPlayer == m_red){
+        //choose and make move for red and indicate it's black's turn next
+        move = m_currentPlayer->chooseMove(m_scaffold, m_win,RED);
+        m_scaffold.makeMove(move, RED);
+        m_currentPlayer = m_black;
     }
+    //if current player is black
+    else if(m_currentPlayer == m_black){
+        //choose and make move for black and indicate it's red's turn next
+        move = m_currentPlayer->chooseMove(m_scaffold, m_win, BLACK);
+        m_scaffold.makeMove(move, BLACK);
+        m_currentPlayer = m_red;
+    }
+    
     return true;
 
 }
@@ -103,10 +95,21 @@ void GameImpl::play()
     cout << "Starting the game..." << endl;
     //display the initial empty scaffold
     m_scaffold.display();
-    //take turn playing the game
-    takeTurn();
+
+    while(!completed(winner)){
+        //take turn playing the game
+        takeTurn();
+        //display the scaffold after move has been made
+        cout << endl;
+        m_scaffold.display();
+        //lets user press enter to see the progress of the game
+        cout << "Press ENTER to continue..." << endl;
+        cin.ignore(10000, '\n');
+        
+        
+       
+    }
     //determine winner and display appropriate message
-    completed(winner);
     if(winner == RED){
         cout << "Player RED won!" << endl;
     }
